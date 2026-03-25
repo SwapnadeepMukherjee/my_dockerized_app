@@ -1,1 +1,1 @@
-print("This is my second personal Dockerized Python App")
+print("This is my second personal Dockerized Python App for learning purpose")
