@@ -109,5 +109,3 @@ This project is open source and available under the MIT License (or specify your
 If you encounter any issues or have questions, please open an [issue](https://github.com/SwapnadeepMukherjee/my_dockerized_app/issues) on the repository.
 
 ---
-
-**Last Updated:** 2026-05-18
