@@ -11,9 +11,9 @@ jobs:
     container:
       image: python:3.11
     steps:
-    - uses: actions/checkout@v2
-    # - name: Set up Python 3.8
-    #   uses: actions/setup-python@v3
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
         python-version: 3.11
     - name: Install dependencies
@@ -21,12 +21,12 @@ jobs:
         python -m pip install --upgrade pip
         # pip install -r requirements.txt
         pip install flake8 pytest pytest-cov checkov
+        pip install coverage
     - name: Lint Python (flake8)
       run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Static Analysis (checkov)
       run: checkov -d . --framework terraform --soft-fail
-    - name: Unit Tests (pytest)
-      run: pytest --cov=src --cov-fail-under=80
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
-        pytest tests/
+        export COVERAGE_PROCESS_START=.coveragerc
+        pytest --cov=python-image/tests/ --cov-fail-under=80
