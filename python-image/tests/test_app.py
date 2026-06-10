@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 def test_app_prints_expected_message_and_directory():
@@ -14,9 +15,7 @@ def test_app_prints_expected_message_and_directory():
         check=True,
     )
 
-# Alternatively to capture the output, you can use subprocess.check_output:
-
-# from pathlib import Path
+# # Alternatively to capture the output, you can use subprocess.check_output:
 
 # # Path(__file__) is my-project/tests/test_pipeline.py
 # # .parent is my-project/tests/
