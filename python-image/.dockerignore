@@ -1,0 +1,8 @@
+.git
+.github
+.gitattributes
+README.md
+tests/
+.coveragerc
+**/__pycache__
+**/*.pyc
