@@ -1,21 +1,38 @@
-import os
-import subprocess
-import sys
+import json
+import logging
+
+from fastapi.testclient import TestClient
+
+from app import JsonFormatter, app as fastapi_app
+
+client = TestClient(fastapi_app)
 
 
-def test_app_prints_expected_message_and_directory():
-    test_dir = os.path.dirname(os.path.abspath(__file__))
-    project_dir = os.path.abspath(os.path.join(test_dir, ".."))
-    result = subprocess.run(
-        [sys.executable, os.path.join(project_dir, "app.py")],
-        cwd=project_dir,
-        capture_output=True,
-        text=True,
-        check=True,
+def test_health_endpoint():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+def test_info_endpoint():
+    response = client.get("/info")
+    assert response.status_code == 200
+    body = response.json()
+    assert "app_env" in body
+    assert "cwd" in body
+
+
+def test_json_formatter_produces_valid_json():
+    record = logging.LogRecord(
+        name="test",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=1,
+        msg="hello %s",
+        args=("world",),
+        exc_info=None,
     )
-
-    print(f"--- DEBUG STDOUT ---\n{result.stdout}\n-------------------")
-    assert "This is my second personal Dockerized Python App " in result.stdout
-    assert "Current working directory:" in result.stdout
-    assert "app.py" in result.stdout
-    assert "Files in current directory:" in result.stdout
+    payload = json.loads(JsonFormatter().format(record))
+    assert payload["message"] == "hello world"
+    assert payload["level"] == "INFO"
+    assert payload["logger"] == "test"

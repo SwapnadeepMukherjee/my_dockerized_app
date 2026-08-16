@@ -1,5 +1,0 @@
-[run]
-omit =
-    */tests/*
-    */sitecustomize.py
-parallel = true
