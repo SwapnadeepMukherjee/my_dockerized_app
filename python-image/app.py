@@ -41,7 +41,7 @@ def info():
     return {"app_env": APP_ENV, "cwd": os.getcwd()}
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
     import uvicorn
 
     logger.info("starting server on port %s (app_env=%s)", PORT, APP_ENV)
