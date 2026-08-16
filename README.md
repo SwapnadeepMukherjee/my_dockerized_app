@@ -1,23 +1,25 @@
 # my_dockerized_app
 
-Build and run a Python app in a Docker container.
+A small FastAPI service, containerized with Docker, with a CI pipeline that lints, tests, enforces a coverage threshold, and scans for security issues on every push.
 
 ## Overview
 
-This repository contains a Python application packaged and containerized using Docker. It demonstrates how to build, configure, and run a Python application within a Docker container for consistent development, testing, and deployment environments.
+This repository is a minimal but real HTTP service: a FastAPI app exposing a health check and an info endpoint, packaged into a multi-stage Docker image running as a non-root user, with GitHub Actions enforcing code quality and security on every change.
+
+It started as a hands-on practice project for Docker packaging and has grown into a small end-to-end example of production engineering practices: pinned dependencies, structured logging, environment-based configuration, automated testing with a coverage gate, and dependency/static-analysis security scanning in CI.
 
 ## Features
 
-- 🐳 Docker containerization for easy deployment
-- 🐍 Python-based application
-- 📦 Reproducible environments across different systems
-- 🚀 Simple setup and execution
+- FastAPI HTTP service with `/health` and `/info` endpoints
+- Multi-stage Docker build: small runtime image, non-root user, pinned base image
+- Structured JSON logging
+- Environment-variable configuration (`PORT`, `LOG_LEVEL`, `APP_ENV`)
+- CI pipeline (GitHub Actions): lint, tests with an enforced coverage threshold, dependency vulnerability scanning (`pip-audit`), static security analysis (`bandit`)
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
-
-- [Docker](https://www.docker.com/products/docker-desktop) (latest version)
+- [Python](https://www.python.org/) 3.11+ (for running locally without Docker)
+- [Docker](https://www.docker.com/products/docker-desktop) (for running containerized)
 - [Git](https://git-scm.com/) (optional, for cloning the repository)
 
 ## Getting Started
@@ -29,66 +31,86 @@ git clone https://github.com/SwapnadeepMukherjee/my_dockerized_app.git
 cd my_dockerized_app
 ```
 
-### Build the Docker Image
+### Run Locally (without Docker)
 
-Navigate to the `python-image` directory and build the Docker image:
+```bash
+cd python-image
+pip install -r requirements.txt
+python app.py
+```
+
+The service starts on `http://localhost:8000`.
+
+### Run with Docker
 
 ```bash
 cd python-image
 docker build -t my-python-app .
+docker run -p 8000:8000 my-python-app
 ```
 
-### Run the Container
-
-To run the containerized application:
+### Verify it's running
 
 ```bash
-docker run my-python-app
+curl http://localhost:8000/health
+```
+
+## API
+
+### `GET /health`
+
+Liveness/readiness probe. Used by the Docker `HEALTHCHECK`.
+
+```json
+{"status": "ok"}
+```
+
+### `GET /info`
+
+Basic runtime info.
+
+```json
+{"app_env": "development", "cwd": "/app"}
 ```
 
 ## Project Structure
 
 ```
 my_dockerized_app/
-├── README.md                 # This file
-├── .gitattributes           # Git configuration
-├── .github/                 # GitHub configuration (workflows, templates, etc.)
-└── python-image/            # Docker image definition
-    └── Dockerfile           # Docker configuration for Python app
+├── LICENSE
+├── README.md
+├── .github/workflows/workflow.yml   # CI: lint, test+coverage, security scans
+└── python-image/
+    ├── Dockerfile                   # multi-stage build
+    ├── requirements.txt
+    ├── app.py                       # FastAPI service
+    └── tests/
+        ├── conftest.py
+        └── test_app.py
 ```
 
 ## Configuration
 
-### Docker Build Arguments
+The service reads configuration from environment variables at startup:
 
-You can customize the build by passing build arguments:
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `8000` | Port the server listens on |
+| `LOG_LEVEL` | `INFO` | Python logging level (`DEBUG`, `INFO`, `WARNING`, ...) |
+| `APP_ENV` | `development` | Environment name, returned by `/info` |
 
-```bash
-docker build -t my-python-app --build-arg PYTHON_VERSION=3.9 python-image/
-```
-
-### Environment Variables
-
-Configure the application by setting environment variables when running the container:
+## Running Tests
 
 ```bash
-docker run -e VAR_NAME=value my-python-app
+cd python-image
+pip install -r requirements.txt
+pip install pytest pytest-cov httpx
+pytest --cov=app --cov-fail-under=80
 ```
 
-## Usage
+## CI/CD
 
-Detailed usage instructions can be found in the `python-image/` directory.
-
-## Development
-
-To make changes to the application:
-
-1. Modify the source files in the `python-image/` directory
-2. Rebuild the Docker image:
-   ```bash
-   docker build -t my-python-app python-image/
-   ```
-3. Test the changes by running the container
+On every push/PR to `main`, [GitHub Actions](.github/workflows/workflow.yml) runs: lint → tests with a coverage gate → dependency and static-analysis security scans.
 
 ## Contributing
 
